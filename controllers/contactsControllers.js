@@ -4,10 +4,12 @@ import {
   removeContact,
   addContact,
   contactUpdate,
+  updateStatusContact,
 } from "../services/contactsServices.js";
 import {
   createContactSchema,
   updateContactSchema,
+  updateFavoriteSchema,
 } from "../schemas/contactsSchemas.js";
 
 export const getAllContacts = async (req, res) => {
@@ -99,6 +101,29 @@ export const updateContact = async (req, res) => {
     }
 
     res.status(200).json(updatedContact);
+  } catch (error) {
+    const { status = 500, message = "Server error" } = error;
+    res.status(status).json({ message });
+  }
+};
+
+export const updateFavoriteStatus = async (req, res) => {
+  try {
+    const { contactId } = req.params;
+    const { error, value } = updateFavoriteSchema.validate(req.body);
+
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
+    const updatedContact = await updateStatusContact(contactId, value.favorite);
+    if (!updatedContact) {
+      const error = new Error("Not found");
+      error.status = 404;
+      throw error;
+    } else {
+      res.status(200).json(updatedContact);
+    }
   } catch (error) {
     const { status = 500, message = "Server error" } = error;
     res.status(status).json({ message });
