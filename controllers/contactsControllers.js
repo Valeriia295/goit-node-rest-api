@@ -14,7 +14,8 @@ import {
 
 export const getAllContacts = async (req, res) => {
   try {
-    const contacts = await listContacts();
+    const userId = req.user._id;
+    const contacts = await listContacts(userId);
     res.status(200).json(contacts);
   } catch (error) {
     res.status(500).json({ message: "Server error" });
@@ -24,7 +25,8 @@ export const getAllContacts = async (req, res) => {
 export const getOneContact = async (req, res) => {
   try {
     const { id } = req.params;
-    const contact = await getContactById(id);
+    const userId = req.user._id;
+    const contact = await getContactById(id, userId);
 
     if (!contact) {
       const error = new Error("Not found");
@@ -42,14 +44,15 @@ export const getOneContact = async (req, res) => {
 export const deleteContact = async (req, res) => {
   try {
     const { id } = req.params;
-    const existingContact = await getContactById(id);
+    const userId = req.user._id;
+    const existingContact = await getContactById(id, userId);
 
     if (!existingContact) {
       const error = new Error("Not found");
       error.status = 404;
       throw error;
     } else {
-      const contactDeletion = await removeContact(id);
+      const contactDeletion = await removeContact(id, userId);
       res.status(200).json(contactDeletion);
     }
   } catch (error) {
@@ -60,13 +63,19 @@ export const deleteContact = async (req, res) => {
 
 export const createContact = async (req, res) => {
   try {
+    const userId = req.user._id;
     const { error, value } = createContactSchema.validate(req.body);
 
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
     }
 
-    const newContact = await addContact(value.name, value.email, value.phone);
+    const newContact = await addContact(
+      userId,
+      value.name,
+      value.email,
+      value.phone
+    );
 
     res.status(201).json(newContact);
   } catch (error) {
@@ -78,6 +87,7 @@ export const createContact = async (req, res) => {
 export const updateContact = async (req, res) => {
   try {
     const { id } = req.params;
+    const userId = req.user._id;
     const { error, value } = updateContactSchema.validate(req.body);
 
     if (error) {
@@ -90,12 +100,12 @@ export const updateContact = async (req, res) => {
         .json({ message: "Body must have at least one field" });
     }
 
-    const existingContact = await getContactById(id);
+    const existingContact = await getContactById(id, userId);
     if (!existingContact) {
       return res.status(404).json({ message: "Not found" });
     }
 
-    const updatedContact = await contactUpdate(id, value);
+    const updatedContact = await contactUpdate(id, userId, value);
     if (!updatedContact) {
       return res.status(404).json({ message: "Not found" });
     }
@@ -110,13 +120,18 @@ export const updateContact = async (req, res) => {
 export const updateFavoriteStatus = async (req, res) => {
   try {
     const { contactId } = req.params;
+    const userId = req.user._id;
     const { error, value } = updateFavoriteSchema.validate(req.body);
 
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
     }
 
-    const updatedContact = await updateStatusContact(contactId, value.favorite);
+    const updatedContact = await updateStatusContact(
+      contactId,
+      value.favorite,
+      userId
+    );
     if (!updatedContact) {
       const error = new Error("Not found");
       error.status = 404;
