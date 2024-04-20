@@ -129,8 +129,8 @@ export const updateFavoriteStatus = async (req, res) => {
 
     const updatedContact = await updateStatusContact(
       contactId,
-      value.favorite,
-      userId
+      userId,
+      value.favorite
     );
     if (!updatedContact) {
       const error = new Error("Not found");
