@@ -4,9 +4,11 @@ import {
   login,
   getCurrent,
   logout,
+  updateAvatar,
 } from "../controllers/authControllers.js";
 import authenticate from "../middlewares/authenticate.js";
 import validateBody from "../helpers/validateBody.js";
+import upload from "../middlewares/avatarUpload.js";
 import { registerSchema } from "../schemas/registerSchema.js";
 
 const authRouter = express.Router();
@@ -18,5 +20,12 @@ authRouter.post("/login", validateBody(registerSchema), login);
 authRouter.get("/current", authenticate, getCurrent);
 
 authRouter.post("/logout", authenticate, logout);
+
+authRouter.patch(
+  "/avatars",
+  authenticate,
+  upload.single("avatar"),
+  updateAvatar
+);
 
 export default authRouter;
