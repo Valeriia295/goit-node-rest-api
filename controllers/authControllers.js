@@ -6,13 +6,11 @@ import { promises as fs } from "fs";
 import path from "path";
 import gravatar from "gravatar";
 import Jimp from "jimp";
-import { fileURLToPath } from "url";
 
 dotenv.config();
 const SECRET_KEY = process.env.SECRET_KEY;
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const avatarsDir = path.join(__dirname, "../", "public", "avatars");
+const avatarsDir = path.join(process.cwd(), "public", "avatars");
 
 export const register = async (req, res) => {
   const { email, password } = req.body;
